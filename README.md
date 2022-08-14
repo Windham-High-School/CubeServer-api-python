@@ -11,5 +11,8 @@ The MicroPython version of the data API wrapper for a high-school STEM competiti
 | MCU         | Description |
 | ----------- | ----------- |
 | ESP32       | Untested    |
-| ESP8266     | In Progress |
+| ESP8266     | Incompatible|
 | Raspi Pico W| Untested    |
+
+The ESP8266 is currently incompatible with this micropython library due to lack of memory resources for handling the TLS handshake.
+To use the ESP8266, please use the Arduino C wrapper.
