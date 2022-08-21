@@ -1,7 +1,7 @@
-# CubeServer-api-micropython
-[![Maintainability](https://api.codeclimate.com/v1/badges/368c4a6572655726b08a/maintainability)](https://codeclimate.com/github/snorklerjoe/CubeServer-api-micropython/maintainability)
+# CubeServer-api-circuitpython
+[![Maintainability](https://api.codeclimate.com/v1/badges/368c4a6572655726b08a/maintainability)](https://codeclimate.com/github/snorklerjoe/CubeServer-api-circuitpython/maintainability)
 
-The MicroPython version of the data API wrapper for a high-school STEM competition
+The CircuitPython version of the data API wrapper for a high-school STEM competition
 
 
 -------------------------------------------------------------------
