@@ -5,13 +5,26 @@
 The CircuitPython version of the data API wrapper for a high-school STEM competition
 
 
+# Example code:
+``` Python
+from server import CubeServer, Text
+
+print("Connecting to the server...")
+connection = CubeServer()
+print("Connected!")
+
+connection.post(Text("Test from CircuitPython!"))
+
+print("Getting status:")
+print(connection.get_status())
+```
 -------------------------------------------------------------------
 
 
 ### Testing Status:
 | MCU         | Description |
 | ----------- | ----------- |
-| ESP32       | Untested    |
+| ESP32       | Works       |
 | ESP8266     | Incompatible|
 | Raspi Pico W| Untested    |
 
