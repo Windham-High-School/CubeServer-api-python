@@ -160,14 +160,16 @@ class Connection:
         server_cert: str = _if_conf_exists('SERVER_CERT'),
         conf = CUBESERVER_DEFAULT_CONFIG,
         verbose: bool = False,
-        _force: bool = False
+        _force: bool = False,
+        _hostname: str = ""
     ):
         """Initializes the connection to the server"""
         # Check parameters:
-        if not _force and \
-           team_name is None or \
-           team_secret is None or \
-           server_cert is None or \
+        if not _force and (
+            team_name is None or \
+            team_secret is None or \
+            server_cert is None
+           ) or \
            not isinstance(conf, ConnectionConfig):
             raise TypeError("Bad parameters or client config")
         self.team_name = team_name
@@ -175,6 +177,9 @@ class Connection:
         self.server_cert = server_cert
         self.conf = conf
         self.v = verbose
+
+        if _hostname:
+            wifi.radio.hostname = _hostname
 
         if self.v:
             print("Obtaining and configuring SSL context...")
