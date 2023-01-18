@@ -7,10 +7,10 @@ The CircuitPython version of the data API wrapper for a high-school STEM competi
 
 # Example code:
 ``` Python
-from server import CubeServer, Text
+from server import Connection, Text
 
 print("Connecting to the server...")
-connection = CubeServer()
+connection = Connection()
 print("Connected!")
 
 connection.post(Text("Test from CircuitPython!"))

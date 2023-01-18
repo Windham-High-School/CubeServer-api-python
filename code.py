@@ -1,9 +1,9 @@
 """Example code"""
 
-from server import CubeServer, Text
+from server import Connection, Text
 
 print("Connecting to the server...")
-connection = CubeServer()
+connection = Connection()
 print("Connected!")
 
 connection.post(Text("Test from CircuitPython!"))

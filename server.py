@@ -118,7 +118,7 @@ class ConnectionError(Exception):
 class AuthorizationError(ConnectionError):
     """Indicates an issue with the team credentials"""
 
-class CubeServerConfig:
+class ConnectionConfig:
     """The configuration of the connection to the server"""
     TIMEOUT: int = 60
     if 'client_config' in globals():
@@ -132,7 +132,7 @@ class CubeServerConfig:
         API_HOST: str = "https://api.local"
         API_PORT: int = 8081
 
-CUBESERVER_DEFAULT_CONFIG = CubeServerConfig()
+CUBESERVER_DEFAULT_CONFIG = ConnectionConfig()
 
 GameStatus = namedtuple("GameStatus",
     ['unix_time',
@@ -150,7 +150,7 @@ def _if_conf_exists(key: str):
         return None
     return getattr(client_config, key)
 
-class CubeServer:
+class Connection:
     """A class for connecting to the server"""
 
     def __init__(
@@ -159,14 +159,16 @@ class CubeServer:
         team_secret: str = _if_conf_exists('TEAM_SECRET'),
         server_cert: str = _if_conf_exists('SERVER_CERT'),
         conf = CUBESERVER_DEFAULT_CONFIG,
-        verbose: bool = False
+        verbose: bool = False,
+        _force: bool = False
     ):
         """Initializes the connection to the server"""
         # Check parameters:
-        if team_name is None or \
+        if not _force and \
+           team_name is None or \
            team_secret is None or \
            server_cert is None or \
-           not isinstance(conf, CubeServerConfig):
+           not isinstance(conf, ConnectionConfig):
             raise TypeError("Bad parameters or client config")
         self.team_name = team_name
         self.team_secret = team_secret
@@ -234,6 +236,9 @@ class CubeServer:
         content_type: str = None,
         headers: list[str] = []
     ) -> str:
+        if self.team_name is None:
+            raise TypeError("This connection instance is not configured properly for making REST requests.")
+
         if self.v:
             print(f"Making {method} request to {path}...")
 
