@@ -181,12 +181,22 @@ class CubeServer:
         if self.v:
             print("Installing server CA certificate for server verification")
         self.context.load_verify_locations(cadata=server_cert)
+        self.connect_wifi()
+
+    def connect_wifi(self) -> None:
+        """Creates the wifi connection to the access point"""
+        wifi.radio.enabled = True
         if self.v:
             print("Connecting to the access point...")
-        wifi.radio.connect(conf.AP_SSID)
+        wifi.radio.connect(self.conf.AP_SSID)
         if self.v:
             print("Initializing socket pool...")
-        self.pool = socketpool.SocketPool(wifi.radio)
+        self.pool = socketpool.SocketPool(wifi.radio)    
+
+    def close_wifi(self) -> None:
+        """Disconnects from the access point and shuts off the radio"""
+        self.close_socket()
+        wifi.radio.enabled = False
 
     def connect_socket(self) -> None:
         """Creates a socket connection to the server"""
@@ -210,6 +220,11 @@ class CubeServer:
             self.sock.close()
             del self.sock
             collect()
+    
+    @property
+    def radio(self):
+        """Returns a wifi.radio object that can be used for further control"""
+        return wifi.radio
 
     def _do_request(
         self,
