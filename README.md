@@ -2,12 +2,13 @@
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/0ed05bb07ca3c9678002/maintainability)](https://codeclimate.com/github/snorklerjoe/CubeServer-api-circuitpython/maintainability)
 
-The CircuitPython version of the data API wrapper for a high-school STEM competition
+The CircuitPython/CPython version of the data API wrapper for a high-school STEM competition
 
+This is implemented for both CPython (it is assumed the computer is already connected to the access point for this use-case) and CircuitPython (for microcontrollers).
 
 # Example code:
 ``` Python
-from server import Connection, Text
+from servercom import Connection, Text
 
 print("Connecting to the server...")
 connection = Connection()
