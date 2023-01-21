@@ -15,7 +15,7 @@ from typing import Union
 
 
 # Helpers:
-class DataClass(Enum):
+class DataClass(str, Enum):
     TEMPERATURE = "temperature"
     HUMIDITY = "humidity"
     PRESSURE = "pressure"
@@ -232,7 +232,7 @@ class Connection:
             collect()
             if self.v:
                 print("Receiving response...")
-            self.wrapped_socket.setblocking(False)
+            self.wrapped_socket.setblocking(True)
             response = b""
             while True:
                 buf = bytearray(256)

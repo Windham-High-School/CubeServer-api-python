@@ -1,7 +1,5 @@
 """Helpers, interfaces, etc. common to ALL implementations"""
 
-print("Common")
-
 # Try to import configuration file
 try:
     import client_config
