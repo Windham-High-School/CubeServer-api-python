@@ -1,6 +1,6 @@
 """Example code"""
 
-from server import Connection, Text
+from servercom import Connection, Text
 
 print("Connecting to the server...")
 connection = Connection()
