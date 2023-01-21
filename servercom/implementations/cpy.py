@@ -1,60 +1,26 @@
-"""The API wrapper for sending data to the CubeServer server
-See https://github.com/snorklerjoe/CubeServer-api-circuitpython for more info!
-"""
+"""CPython implementation of the CubeServer API Wrapper Library"""
+
+from .common import *
 
 import ssl
-import wifi
-import socketpool
+import socket
 from gc import collect
 from collections import namedtuple
 from binascii import b2a_base64
 from errno import EAGAIN
 from json import loads, dumps
-
-try:
-    import client_config
-except ImportError:
-    pass
+from urllib.parse import quote_plus
+from enum import Enum
+from typing import Union
 
 
 # Helpers:
-DEGREE_SIGN = u"\xb0"
-
-def enum(**enums):
-    """Fake enum-maker"""
-    return type('Enum', (), enums)
-
-def basic_auth_str(user: str, pwd: str) -> str:
-    """Encodes the username and password as per RFC7617 on Basic Auth"""
-    return b2a_base64(f"{user}:{pwd}".encode()).strip().decode("utf-8")
-
-def urlencode(stuff: str) -> str:
-    """URL-encodes a string"""
-    output = ""
-    for char in stuff:
-        if char.isalpha() or char.isdigit():
-            output += char
-        else:
-            hex_repr = hex(ord(char)).lstrip('0x').upper()
-            if ord(char) <= 0xFF:
-                output += '%' + hex_repr
-            elif 0xFF < ord(char) <= 0xFFFF:
-                if len(hex_repr) == 3:
-                    hex_repr = '0' + hex_repr
-                output += '%' + hex_repr[:2] + '%' + hex_repr[2:]
-            else:
-                raise ValueError("Unencodable character")
-
-    return output
-
-
-DataClass = enum(
-    TEMPERATURE = "temperature",
-    HUMIDITY = "humidity",
-    PRESSURE = "pressure",
-    LIGHT_INTENSITY = "light intensity",
+class DataClass(Enum):
+    TEMPERATURE = "temperature"
+    HUMIDITY = "humidity"
+    PRESSURE = "pressure"
+    LIGHT_INTENSITY = "light intensity"
     COMMENT = "comment"
-)
 
 class DataPoint():
     """A class for storing and handling datapoints"""
@@ -118,52 +84,29 @@ class ConnectionError(Exception):
 class AuthorizationError(ConnectionError):
     """Indicates an issue with the team credentials"""
 
-class ConnectionConfig:
-    """The configuration of the connection to the server"""
-    TIMEOUT: int = 60
-    if 'client_config' in globals():
-        AP_SSID: str = client_config.CONF_AP_SSID
-        API_CN: str = client_config.CONF_API_CN
-        API_HOST: str = client_config.CONF_API_HOST
-        API_PORT: int = client_config.API_PORT
-    else:
-        AP_SSID: str = "CubeServer-API"
-        API_CN: str = "api.local"
-        API_HOST: str = "https://api.local"
-        API_PORT: int = 8081
+def basic_auth_str(user: str, pwd: str) -> str:
+    """Encodes the username and password as per RFC7617 on Basic Auth"""
+    return b2a_base64(f"{user}:{pwd}".encode()).strip().decode("utf-8")
 
-CUBESERVER_DEFAULT_CONFIG = ConnectionConfig()
-
-GameStatus = namedtuple("GameStatus",
-    ['unix_time',
-    'score',
-    'strikes']
-)
-
-HTTPResponse = namedtuple("HTTPResponse",
-    ['code', 'body']
-)
-
-def _if_conf_exists(key: str):
-    """Returns the config value if client_config is imported, else None"""
-    if 'client_config' not in globals():
-        return None
-    return getattr(client_config, key)
+def urlencode(stuff: str) -> str:
+    """URL-encodes a string"""
+    return quote_plus(stuff)
 
 class Connection:
     """A class for connecting to the server"""
 
     def __init__(
         self,
-        team_name: str = _if_conf_exists('TEAM_NAME'),
-        team_secret: str = _if_conf_exists('TEAM_SECRET'),
-        server_cert: str = _if_conf_exists('SERVER_CERT'),
+        team_name: str = conf_if_exists('TEAM_NAME'),
+        team_secret: str = conf_if_exists('TEAM_SECRET'),
+        server_cert: str = conf_if_exists('SERVER_CERT'),
         conf = CUBESERVER_DEFAULT_CONFIG,
         verbose: bool = False,
         _force: bool = False,
         _hostname: str = ""
     ):
         """Initializes the connection to the server"""
+
         # Check parameters:
         if not _force and (
             team_name is None or \
@@ -172,14 +115,18 @@ class Connection:
            ) or \
            not isinstance(conf, ConnectionConfig):
             raise TypeError("Bad parameters or client config")
+
+        if _hostname:
+            print(
+                f"The hostname {_hostname} will not take effect. "
+                "This parameter does not apply to the CPython implementation."
+            )
+
         self.team_name = team_name
         self.team_secret = team_secret
         self.server_cert = server_cert
         self.conf = conf
         self.v = verbose
-
-        if _hostname:
-            wifi.radio.hostname = _hostname
 
         if self.v:
             print("Obtaining and configuring SSL context...")
@@ -188,30 +135,23 @@ class Connection:
         if self.v:
             print("Installing server CA certificate for server verification")
         self.context.load_verify_locations(cadata=server_cert)
-        self.connect_wifi()
 
     def connect_wifi(self) -> None:
-        """Creates the wifi connection to the access point"""
-        wifi.radio.enabled = True
-        if self.v:
-            print("Connecting to the access point...")
-        wifi.radio.connect(self.conf.AP_SSID)
-        if self.v:
-            print("Initializing socket pool...")
-        self.pool = socketpool.SocketPool(wifi.radio)    
+        """Exists for compatibility with the CircuitPython implementation
+        Creates the wifi connection to the access point"""
+        pass
 
     def close_wifi(self) -> None:
-        """Disconnects from the access point and shuts off the radio"""
-        self.close_socket()
-        wifi.radio.enabled = False
+        """Exists for compatibility with the CircuitPython implementation
+        Disconnects from the access point and shuts off the radio"""
+        pass
 
     def connect_socket(self) -> None:
         """Creates a socket connection to the server"""
         if self.v:
             print("Connecting the socket...")
-        collect()
-        self.sock = self.pool.socket(self.pool.AF_INET, self.pool.SOCK_STREAM)
-        self.wrapped_socket = self.context.wrap_socket(self.sock, server_hostname=self.conf.API_HOST)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.wrapped_socket = self.context.wrap_socket(self.sock)
         self.wrapped_socket.settimeout(self.conf.TIMEOUT)
         self.wrapped_socket.connect((self.conf.API_HOST, self.conf.API_PORT))
 
@@ -222,16 +162,14 @@ class Connection:
         if hasattr(self, 'wrapped_socket'):
             self.wrapped_socket.close()
             del self.wrapped_socket
-            collect()
         if hasattr(self, 'sock'):
             self.sock.close()
             del self.sock
-            collect()
-    
+
     @property
     def radio(self):
-        """Returns a wifi.radio object that can be used for further control"""
-        return wifi.radio
+        """Exists for compatibility with the CircuitPython implementation"""
+        return None
 
     def _do_request(
         self,
@@ -401,3 +339,9 @@ class Connection:
             content_type = 'application/json',
             headers=['User-Agent: Dude']
         ).code == 201
+    
+    def __exit__(self):
+        if self.v:
+            print("Closing the server connection-")
+        self.close_socket()
+        self.close_wifi()
