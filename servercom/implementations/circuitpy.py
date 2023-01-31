@@ -366,7 +366,16 @@ class Connection:
             '/data',
             point.dumps(),
             content_type = 'application/json',
-            headers=['User-Agent: Dude']
+            headers=['User-Agent: CircuitPython, dude!']
+        ).code == 201
+    
+    def email(self, msg: Email) -> bool:
+        return self.request(
+            'POST',
+            '/email',
+            msg.dumps(),
+            content_type = 'application/json',
+            headers=['User-Agent: CircuitPython, dude!']
         ).code == 201
     
     def __exit__(self):
