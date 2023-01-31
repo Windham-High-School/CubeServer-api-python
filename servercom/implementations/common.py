@@ -7,7 +7,7 @@ except ImportError:
     pass
 
 from collections import namedtuple
-
+from json import dumps
 
 # Constants:
 DEGREE_SIGN = u"\xb0"
@@ -44,3 +44,18 @@ class ConnectionConfig:
         API_PORT: int = 8081
 
 CUBESERVER_DEFAULT_CONFIG = ConnectionConfig()
+
+class Email:
+    """Holds an email to be sent to the team"""
+
+    def __init__(self, subject, message) -> None:
+        self.subject = subject
+        self.message = message
+
+    def dumps(self) -> str:
+        return dumps(
+            {
+                'subject': self.subject,
+                'message': self.message
+            }
+        )
