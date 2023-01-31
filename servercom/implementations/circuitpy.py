@@ -25,7 +25,8 @@ DataClass = enum(
     HUMIDITY = "humidity",
     PRESSURE = "pressure",
     LIGHT_INTENSITY = "light intensity",
-    COMMENT = "comment"
+    COMMENT = "comment",
+    BATTERY = "remaining battery"
 )
 
 class DataPoint():
@@ -83,6 +84,12 @@ class Text(DataPoint):
     UNIT=""  # No unit for regular strings of text
     def __init__(self, value: str):
         super().__init__(DataClass.COMMENT, value)
+
+class BatteryLevel(DataPoint):
+    """A class reserved for DataPoints that are intended as an indication of battery level"""
+    UNIT="%"  # No unit for regular strings of text
+    def __init__(self, value: int):
+        super().__init__(DataClass.BATTERY, value)
 
 class ConnectionError(Exception):
     """Indicates an issue with the server connection"""
