@@ -4,6 +4,7 @@ See https://github.com/snorklerjoe/CubeServer-api-circuitpython for more info!
 Supported implementations: cpython, circuitpython
 """
 
+from ._version import *
 from sys import implementation as _implementation
 
 
