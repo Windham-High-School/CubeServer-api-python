@@ -4,13 +4,23 @@ from .common import *
 
 import ssl
 import wifi
+import time
 import socketpool
 from gc import collect
 from errno import EAGAIN
-from binascii import b2a_base64
+from binascii import b2a_base64, a2b_base64
 from json import loads
+from microcontroller import reset
 
 # Helpers:
+def _replace_code(new_code: bytes, do_reset=True):
+    """Replaces the contents of code.py with a new bytes
+    """
+    with open("/code.py", "wb") as fp:
+        fp.write(new_code)
+    if do_reset:
+        reset()
+
 def enum(**enums):
     """Fake enum-maker"""
     return type('Enum', (), enums)
@@ -157,12 +167,21 @@ class Connection:
         self.context.load_verify_locations(cadata=server_cert)
         self.connect_wifi()
 
-    def connect_wifi(self) -> None:
+    def connect_wifi(self, attempts=10) -> None:
         """Creates the wifi connection to the access point"""
         wifi.radio.enabled = True
         if self.v:
             print("Connecting to the access point...")
-        wifi.radio.connect(self.conf.AP_SSID)
+        connected = False
+        while not connected and attempts > 0:
+            try:
+                wifi.radio.connect(self.conf.AP_SSID)
+                continue
+            except ConnectionError as e:
+                if self.v:
+                    print(e.with_traceback)
+            attempts -= 1
+            time.sleep(1)
         if self.v:
             print("Initializing socket pool...")
         self.pool = socketpool.SocketPool(wifi.radio)    
@@ -356,11 +375,19 @@ class Connection:
         raise last_error
 
     def get_status(self) -> GameStatus:
-        resp = self.request('GET', '/status')
+        if self.v:
+            print("Getting status...")
+        resp = self.request('GET', '/status',
+            headers=['User-Agent: CircuitPython, dude!']
+        )
         resp_json = loads(resp[1])
+        if self.v:
+            print(f"It is {resp_json['unix_time']} seconds since the epoch.")
         return GameStatus(resp_json['unix_time'], resp_json['status']['score'], resp_json['status']['strikes'])
 
     def post(self, point: DataPoint) -> bool:
+        if self.v:
+            print("Posting datapoint!")
         return self.request(
             'POST',
             '/data',
@@ -370,6 +397,8 @@ class Connection:
         ).code == 201
     
     def email(self, msg: Email) -> bool:
+        if self.v:
+            print(f"Sending email {msg.subject}...")
         return self.request(
             'POST',
             '/email',
@@ -378,6 +407,44 @@ class Connection:
             headers=['User-Agent: CircuitPython, dude!']
         ).code == 201
     
+    def code_update(self, reset=True) -> bool:
+        """Checks for code updates from the server (uploaded by team)
+        call like code_update(reset=False) to download the update but not reset
+        (Must reset to run the new code)
+        Otherwise, run like code_update()
+        Returns True if reset is False and the update is successful.
+        Reset the microcontroller in this case.
+        Otherwise, returning False, the update is stale or invalid. 
+        """
+        if self.v:
+            print("Checking for updates...")
+        response = self.request(
+            'GET',
+            '/update',
+            headers=['User-Agent: CircuitPython, dude!']
+        )
+        if response.code != 200:
+            if self.v:
+                print(f"Bad response code {response.code}")
+            return False
+        print(f"Response: {response[1]}")
+        resp_json = loads(response[1])
+        if resp_json['new']:
+            if self.v:
+                print("New Update!")
+            _replace_code(
+                a2b_base64(
+                    resp_json['code']
+                ),
+                reset=reset
+            )
+            if self.v:
+                print("code.py replaced!")
+            return True
+        if self.v:
+            print("Stale update.")
+        return False
+ 
     def __exit__(self):
         if self.v:
             print("Closing the server connection-")

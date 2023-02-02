@@ -354,6 +354,8 @@ class Connection:
             content_type = 'application/json',
             headers=['User-Agent: CPython, dude!']
         ).code == 201
+    def code_update(reset=True):
+        pass
     def __exit__(self):
         if self.v:
             print("Closing the server connection-")

@@ -4,3 +4,4 @@ VERSION=$(cat ./version.txt)
 VERSION_STR="__version__ = \"$VERSION\""
 
 echo $VERSION_STR > ./servercom/_version.py
+echo $VERSION_STR > ./cube/_version.py
