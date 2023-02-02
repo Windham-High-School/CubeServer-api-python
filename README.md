@@ -22,6 +22,11 @@ print(connection.get_status())
 -------------------------------------------------------------------
 
 
+## Limitations & Considerations
+
+- This library disables concurrent write protection-
+If your code stores something to a file, be careful when writing to it while the board is plugged in to avoid corruption!
+
 ### Testing Status:
 | MCU         | Description |
 | ----------- | ----------- |
