@@ -245,8 +245,8 @@ class Connection:
                 f"{method} {path} HTTP/1.1\r\n" +
                 "Host: api.local\r\n" +
                 "Connection: close\r\n" +
-                f"Authorization: Basic {auth_str}\r\n" +
-                '\r\n'.join(headers)
+                f"Authorization: Basic {auth_str}" +
+                '\r\n'.join(headers) + "\r\n"
             )
             del auth_str
             collect()
@@ -378,7 +378,7 @@ class Connection:
         if self.v:
             print("Getting status...")
         resp = self.request('GET', '/status',
-            headers=['User-Agent: CircuitPython, dude!']
+            headers=['User-Agent: CircuitPythonDude']
         )
         resp_json = loads(resp[1])
         if self.v:
@@ -393,7 +393,7 @@ class Connection:
             '/data',
             point.dumps(),
             content_type = 'application/json',
-            headers=['User-Agent: CircuitPython, dude!']
+            headers=['User-Agent: CircuitPythonDude']
         ).code == 201
     
     def email(self, msg: Email) -> bool:
@@ -404,7 +404,7 @@ class Connection:
             '/email',
             msg.dumps(),
             content_type = 'application/json',
-            headers=['User-Agent: CircuitPython, dude!']
+            headers=['User-Agent: CircuitPythonDude']
         ).code == 201
     
     def code_update(self, reset=True) -> bool:
@@ -421,7 +421,7 @@ class Connection:
         response = self.request(
             'GET',
             '/update',
-            headers=['User-Agent: CircuitPython, dude!']
+            headers=['User-Agent: CircuitPythonDude']
         )
         if response.code != 200:
             if self.v:
