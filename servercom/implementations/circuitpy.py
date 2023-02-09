@@ -176,7 +176,7 @@ class Connection:
         while not connected and attempts > 0:
             try:
                 wifi.radio.connect(self.conf.AP_SSID)
-                continue
+                break
             except ConnectionError as e:
                 if self.v:
                     print(e.with_traceback)
