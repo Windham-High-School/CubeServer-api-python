@@ -219,6 +219,30 @@ class Connection:
         """Returns a wifi.radio object that can be used for further control"""
         return wifi.radio
 
+    def rx_bytes(self) -> bytes:
+        response = b""
+        while True:
+            buf = bytearray(256)
+            try:
+                recvd = self.wrapped_socket.recv_into(buf, 256)
+            except OSError as e:
+                if e.errno == EAGAIN:
+                    recvd = 0
+                else:
+                    raise
+            response += buf
+            del buf
+            collect()
+            if self.v:
+                print(f"Received {recvd} bytes")
+            if recvd == 0:
+                del recvd
+                collect()
+                break
+            del recvd
+            collect()
+        return response
+
     def _do_request(
         self,
         method: str,
@@ -281,27 +305,7 @@ class Connection:
             if self.v:
                 print("Receiving response...")
             self.wrapped_socket.setblocking(False)
-            response = b""
-            while True:
-                buf = bytearray(256)
-                try:
-                    recvd = self.wrapped_socket.recv_into(buf, 256)
-                except OSError as e:
-                    if e.errno == EAGAIN:
-                        recvd = 0
-                    else:
-                        raise
-                response += buf
-                del buf
-                collect()
-                if self.v:
-                    print(f"Received {recvd} bytes")
-                if recvd == 0:
-                    del recvd
-                    collect()
-                    break
-                del recvd
-                collect()
+            response = self.rx_bytes()
         except Exception as e:
             if self.v:
                 print("An error occurred. Cleaning up...")
