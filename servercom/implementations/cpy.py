@@ -263,7 +263,7 @@ class Connection:
             if self.v:
                 print("Receiving response...")
             self.wrapped_socket.setblocking(True)
-            response = rx_bytes()
+            response = self.rx_bytes()
         except Exception as e:
             if self.v:
                 print("An error occurred. Cleaning up...")
