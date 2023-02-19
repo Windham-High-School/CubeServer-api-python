@@ -18,3 +18,7 @@ class Immutable:
         if hasattr(self, '_frozen'):
             raise AttributeError("This object is immutable. You cannot set any instance variables.")
         object.__setattr__(self, *args, **kwargs)
+
+def enum(**enums):
+    """Fake enum-maker"""
+    return type('Enum', (), enums)

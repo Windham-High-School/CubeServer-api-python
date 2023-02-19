@@ -3,19 +3,26 @@ Some tools for dealing with times on microcontrollers
 (to a precision of 1 second)
 """
 
-from time import monotonic
-from ._utils import Immutable
+from time import monotonic, struct_time
+from ._utils import Immutable, enum
 
 # Time unit declarations in seconds:
-MINUTE = 60
-HOUR   = 3600
-DAY    = HOUR * 24
-WEEK   = DAY * 7
-YEAR   = DAY * 365
+TimeUnit = enum(
+    SECOND = 1,
+    MINUTE = 60,
+    HOUR   = 3600,
+    DAY    = 3600 * 24,
+    WEEK   = 3600 * 24 * 7,
+    YEAR   = 3600 * 24 * 365
+)
 
 # Time zone UTC offsets:
-EST    = -5 * HOUR
-EDT    = -4 * HOUR
+TimeZone = enum(
+    UTC = 0,
+    GMT = 0,
+    EST = -5 * TimeUnit.HOUR,
+    EDT = -4 * TimeUnit.HOUR
+)
 
 class Time(Immutable):
     """Represents an instant in time based around a UNIX timestamp"""
@@ -53,8 +60,13 @@ class Time(Immutable):
         return cls(cls.get_unix_time())
 
     # Constructor and Instance Methods:
-    def __init__(self, unix_timestamp: int, absolute: bool = True):
-        self.seconds = unix_timestamp
+    def __init__(
+        self,
+        value: int,
+        unit: TimeUnit = TimeUnit.SECOND,
+        absolute: bool = True
+    ):
+        self.seconds = value * unit
         self.absolute = absolute
         super().__init__()
 
@@ -74,11 +86,11 @@ class Time(Immutable):
         """
         return Time(self.seconds
             + seconds
-            + minutes * MINUTE
-            + hours * HOUR
-            + days * DAY
-            + weeks * WEEK
-            + years * YEAR
+            + minutes * TimeUnit.MINUTE
+            + hours * TimeUnit.HOUR
+            + days * TimeUnit.DAY
+            + weeks * TimeUnit.WEEK
+            + years * TimeUnit.YEAR
         )
 
     def since_last(self, timeunit: int) -> 'Time':
@@ -137,6 +149,11 @@ class Time(Immutable):
             self.seconds // other,
             absolute=False
         )
+    
+    def __floordiv__(self, other: int) -> int:
+        if not isinstance(other, int) or self.absolute:
+            raise TypeError("Floor division is only to be used as Time // TimeUnit (int) to find the number of a unit that fits in a given relative time/time delta")
+        return self.seconds // other
 
     def __mod__(self, other: 'Time') -> 'Time':
         if not (isinstance(other, Time) or isinstance(other, int)):

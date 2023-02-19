@@ -2,6 +2,7 @@
 
 from .common import *
 from ..timetools import Time
+from .._utils import enum
 
 import ssl
 import wifi
@@ -21,10 +22,6 @@ def _replace_code(new_code: bytes, do_reset=True):
         fp.write(new_code)
     if do_reset:
         reset()
-
-def enum(**enums):
-    """Fake enum-maker"""
-    return type('Enum', (), enums)
 
 def basic_auth_str(user: str, pwd: str) -> str:
     """Encodes the username and password as per RFC7617 on Basic Auth"""
