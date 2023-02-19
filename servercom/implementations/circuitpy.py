@@ -387,7 +387,7 @@ class Connection:
         resp_json = loads(resp[1])
         if self.v:
             print(f"It is {resp_json['unix_time']} seconds since the epoch.")
-        return GameStatus(resp_json['unix_time'], resp_json['status']['score'], resp_json['status']['strikes'])
+        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'])
 
     def post(self, point: DataPoint) -> bool:
         if self.v:

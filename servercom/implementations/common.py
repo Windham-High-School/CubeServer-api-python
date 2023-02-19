@@ -14,9 +14,8 @@ DEGREE_SIGN = u"\xb0"
 
 
 GameStatus = namedtuple("GameStatus",
-    ['unix_time',
-    'score',
-    'strikes']
+    ['time',
+    'score']
 )
 
 HTTPResponse = namedtuple("HTTPResponse",
