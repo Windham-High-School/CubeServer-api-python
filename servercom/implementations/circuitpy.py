@@ -1,6 +1,7 @@
 """CircuitPython implementation of the CubeServer API Wrapper Library"""
 
 from .common import *
+from ..timetools import Time
 
 import ssl
 import wifi
@@ -379,6 +380,9 @@ class Connection:
         raise last_error
 
     def get_status(self) -> GameStatus:
+        """Gives the team access to their score and the current unix time.
+        Most teams probably won't need this.
+        """
         if self.v:
             print("Getting status...")
         resp = self.request('GET', '/status',
@@ -389,7 +393,16 @@ class Connection:
             print(f"It is {resp_json['unix_time']} seconds since the epoch.")
         return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'])
 
+    def sync_time(self) -> bool:
+        """Syncs the current clock against the server"""
+        status = self.get_status()
+        if status:
+            Time.set_time(status.time)
+            return True
+        return False
+
     def post(self, point: DataPoint) -> bool:
+        """Posts a DataPoint object to the server"""
         if self.v:
             print("Posting datapoint!")
         return self.request(
@@ -401,6 +414,7 @@ class Connection:
         ).code == 201
     
     def email(self, msg: Email) -> bool:
+        """Sends an email to the team"""
         if self.v:
             print(f"Sending email {msg.subject}...")
         return self.request(

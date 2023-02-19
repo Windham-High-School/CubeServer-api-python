@@ -339,27 +339,44 @@ class Connection:
         raise last_error
 
     def get_status(self) -> GameStatus:
+        """Gives the team access to their score and the current unix time.
+        Most teams probably won't need this.
+        """
         resp = self.request('GET', '/status')
         resp_json = loads(resp[1])
         return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'])
+    
+    def sync_time(self) -> bool:
+        """Syncs the current clock against the server"""
+        status = self.get_status()
+        if status:
+            Time.set_time(status.time)
+            return True
+        return False
 
     def post(self, point: DataPoint) -> bool:
+        """Posts a DataPoint object to the server"""
         return self.request(
             'POST',
             '/data',
             point.dumps(),
             content_type = 'application/json',
-            headers=['User-Agent: CPython, dude!']
+            headers=['User-Agent: CPythonDude']
         ).code == 201
     def email(self, msg: Email) -> bool:
+        """Sends an email to the team"""
         return self.request(
             'POST',
             '/email',
             msg.dumps(),
             content_type = 'application/json',
-            headers=['User-Agent: CPython, dude!']
+            headers=['User-Agent: CPythonDude']
         ).code == 201
     def code_update(reset=True):
+        """THIS FEATURE IS NOT IMPLEMENTED FOR CPython.
+        Checks for a code update from the server.
+        Restarts the microcontroller and run the new code if it is available
+        """
         pass
     def __exit__(self):
         if self.v:

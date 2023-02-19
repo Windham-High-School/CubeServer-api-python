@@ -26,9 +26,13 @@ class Time(Immutable):
 
     # Class Methods:
     @classmethod
-    def set_time(cls, unix_timestamp: int) -> None:
+    def set_unix_time(cls, unix_timestamp: int) -> None:
         cls._timeset = (int(monotonic()), int(unix_timestamp))
         cls._time_offset = int(unix_timestamp - monotonic())
+
+    @classmethod
+    def set_time(cls, current_time: 'Time') -> None:
+        cls.set_unix_time(current_time.seconds)
 
     @classmethod
     def from_unix_time(cls, unix_time: int) -> int:
