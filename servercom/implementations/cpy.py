@@ -200,6 +200,7 @@ class Connection:
                 break
             del recvd
             collect()
+        return response
 
     def _do_request(
         self,
