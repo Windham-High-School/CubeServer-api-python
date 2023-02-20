@@ -14,9 +14,8 @@ DEGREE_SIGN = u"\xb0"
 
 
 GameStatus = namedtuple("GameStatus",
-    ['unix_time',
-    'score',
-    'strikes']
+    ['time',
+    'score']
 )
 
 HTTPResponse = namedtuple("HTTPResponse",
@@ -31,7 +30,7 @@ def conf_if_exists(key: str):
 
 class ConnectionConfig:
     """The configuration of the connection to the server"""
-    TIMEOUT: int = 60
+    TIMEOUT: int = 10
     if 'client_config' in globals():
         AP_SSID: str = client_config.CONF_AP_SSID
         API_CN: str = client_config.CONF_API_CN

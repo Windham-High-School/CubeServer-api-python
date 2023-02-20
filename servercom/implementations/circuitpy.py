@@ -1,6 +1,8 @@
 """CircuitPython implementation of the CubeServer API Wrapper Library"""
 
 from .common import *
+from ..timetools import Time
+from .._utils import enum
 
 import ssl
 import wifi
@@ -20,10 +22,6 @@ def _replace_code(new_code: bytes, do_reset=True):
         fp.write(new_code)
     if do_reset:
         reset()
-
-def enum(**enums):
-    """Fake enum-maker"""
-    return type('Enum', (), enums)
 
 def basic_auth_str(user: str, pwd: str) -> str:
     """Encodes the username and password as per RFC7617 on Basic Auth"""
@@ -379,6 +377,9 @@ class Connection:
         raise last_error
 
     def get_status(self) -> GameStatus:
+        """Gives the team access to their score and the current unix time.
+        Most teams probably won't need this.
+        """
         if self.v:
             print("Getting status...")
         resp = self.request('GET', '/status',
@@ -387,9 +388,18 @@ class Connection:
         resp_json = loads(resp[1])
         if self.v:
             print(f"It is {resp_json['unix_time']} seconds since the epoch.")
-        return GameStatus(resp_json['unix_time'], resp_json['status']['score'], resp_json['status']['strikes'])
+        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'])
+
+    def sync_time(self) -> bool:
+        """Syncs the current clock against the server"""
+        status = self.get_status()
+        if status:
+            Time.set_time(status.time)
+            return True
+        return False
 
     def post(self, point: DataPoint) -> bool:
+        """Posts a DataPoint object to the server"""
         if self.v:
             print("Posting datapoint!")
         return self.request(
@@ -401,6 +411,7 @@ class Connection:
         ).code == 201
     
     def email(self, msg: Email) -> bool:
+        """Sends an email to the team"""
         if self.v:
             print(f"Sending email {msg.subject}...")
         return self.request(
