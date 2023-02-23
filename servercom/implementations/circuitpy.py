@@ -218,6 +218,7 @@ class Connection:
         return wifi.radio
 
     def rx_bytes(self) -> bytes:
+        total_length: int = None
         response = b""
         while True:
             buf = bytearray(256)
@@ -228,12 +229,21 @@ class Connection:
                     recvd = 0
                 else:
                     raise
-            response += buf
+            response += bytes(buf).replace(b'\x00', b'')
             del buf
             collect()
             if self.v:
                 print(f"Received {recvd} bytes")
-            if recvd == 0:
+            if response.endswith(b'\r\n\r\n'):
+                header_chunks = response.split(b'\r\n')
+                for header in header_chunks:
+                    if header.startswith(b'Content-Length: '):
+                        total_length = len(response) + int(header.split(b' ')[1])
+                        break
+            if recvd == 0 or (
+                total_length is not None and \
+                    len(response) >= total_length
+            ):
                 del recvd
                 collect()
                 break
@@ -267,8 +277,8 @@ class Connection:
                 f"{method} {path} HTTP/1.1\r\n" +
                 "Host: api.local\r\n" +
                 "Connection: close\r\n" +
-                f"Authorization: Basic {auth_str}" +
-                '\r\n'.join(headers) + "\r\n"
+                f"Authorization: Basic {auth_str}\r\n" +
+                '\r\n'.join(headers)
             )
             del auth_str
             collect()
@@ -283,7 +293,8 @@ class Connection:
                     f"Content-Length: {len(body)}\r\n" +
                     f"\r\n{body}\r\n"
                 )
-            req_text += '\r\n'
+            else:
+                req_text += '\r\n\r\n'
 
             if self.v:
                 print("Sending request...")
@@ -302,7 +313,7 @@ class Connection:
             collect()
             if self.v:
                 print("Receiving response...")
-            self.wrapped_socket.setblocking(False)
+            self.wrapped_socket.settimeout(self.conf.TIMEOUT)
             response = self.rx_bytes()
         except Exception as e:
             if self.v:
