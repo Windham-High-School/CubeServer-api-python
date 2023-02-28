@@ -337,7 +337,7 @@ class Connection:
         """
         resp = self.request('GET', '/status')
         resp_json = loads(resp[1])
-        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'])
+        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'], resp_json['CubeServer_version'])
     
     def sync_time(self) -> bool:
         """Syncs the current clock against the server"""
