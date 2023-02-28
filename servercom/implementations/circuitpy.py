@@ -30,11 +30,10 @@ def basic_auth_str(user: str, pwd: str) -> str:
 
 DataClass = enum(
     TEMPERATURE = "temperature",
-    HUMIDITY = "humidity",
     PRESSURE = "pressure",
-    LIGHT_INTENSITY = "light intensity",
     COMMENT = "comment",
-    BATTERY = "remaining battery"
+    BATTERY = "remaining battery",
+    BEACON = "beacon challenge"
 )
 
 class DataPoint():
@@ -69,29 +68,23 @@ class Temperature(DataPoint):
     def __init__(self, value):
         super().__init__(DataClass.TEMPERATURE, value)
 
-class Humidity(DataPoint):
-    """A class for DataPoints that store humidity values"""
-    UNIT = "%"
-    def __init__(self, value):
-        super().__init__(DataClass.HUMIDITY, value)
-
 class Pressure(DataPoint):
     """A class for DataPoints that store barometric pressure values"""
     UNIT="inHg"
     def __init__(self, value):
         super().__init__(DataClass.PRESSURE, value)
 
-class Intensity(DataPoint):
-    """A class for DataPoints that store light intensity values"""
-    UNIT="lux"
-    def __init__(self, value):
-        super().__init__(DataClass.LIGHT_INTENSITY, value)
-
 class Text(DataPoint):
     """A class reserved for DataPoints that are intended as a text comment"""
     UNIT=""  # No unit for regular strings of text
     def __init__(self, value: str):
         super().__init__(DataClass.COMMENT, value)
+
+class BeaconChallenge(DataPoint):
+    """A class reserved for DataPoints that are in response to a message from the beacon"""
+    UNIT=""  # No unit for regular strings of text
+    def __init__(self, value: str):
+        super().__init__(DataClass.BEACON, value)
 
 class BatteryLevel(DataPoint):
     """A class reserved for DataPoints that are intended as an indication of battery level"""
@@ -399,7 +392,7 @@ class Connection:
         resp_json = loads(resp[1])
         if self.v:
             print(f"It is {resp_json['unix_time']} seconds since the epoch.")
-        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'])
+        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'], resp_json['CubeServer_version'])
 
     def sync_time(self) -> bool:
         """Syncs the current clock against the server"""
