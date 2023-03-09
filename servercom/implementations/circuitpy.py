@@ -155,7 +155,7 @@ class Connection:
         self.context.load_verify_locations(cadata=server_cert)
         self.connect_wifi()
 
-    def connect_wifi(self, attempts=10) -> None:
+    def connect_wifi(self, attempts=50) -> None:
         """Creates the wifi connection to the access point"""
         wifi.radio.enabled = True
         if self.v:
@@ -169,7 +169,7 @@ class Connection:
                 if self.v:
                     print(e.with_traceback)
             attempts -= 1
-            time.sleep(1)
+            time.sleep(.1)
         if self.v:
             print("Initializing socket pool...")
         self.pool = socketpool.SocketPool(wifi.radio)    
