@@ -92,9 +92,6 @@ class BatteryLevel(DataPoint):
     def __init__(self, value: int):
         super().__init__(DataClass.BATTERY, value)
 
-class ConnectionError(Exception):
-    """Indicates an issue with the server connection"""
-
 class AuthorizationError(ConnectionError):
     """Indicates an issue with the team credentials"""
 
