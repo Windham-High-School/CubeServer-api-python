@@ -125,7 +125,8 @@ class Connection:
         conf = CUBESERVER_DEFAULT_CONFIG,
         verbose: bool = False,
         _force: bool = False,
-        _hostname: str = ""
+        _hostname: str = "",
+        _just_print_exceptions: bool = True
     ):
         """Initializes the connection to the server"""
         # Check parameters:
@@ -136,6 +137,8 @@ class Connection:
            ) or \
            not isinstance(conf, ConnectionConfig):
             raise TypeError("Bad parameters or client config")
+
+        self._catch_exceptions = _just_print_exceptions
 
         self.team_name = team_name
         self.team_secret = team_secret
@@ -375,7 +378,10 @@ class Connection:
                 return self.request_once(method, path, body, content_type, headers)
             except (ValueError, ConnectionError) as e:
                 last_error = e
-        raise last_error
+                if self.v:
+                    print(e)
+        if not self._catch_exceptions:
+            raise last_error
 
     def get_status(self) -> GameStatus:
         """Gives the team access to their score and the current unix time.

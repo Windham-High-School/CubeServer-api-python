@@ -104,7 +104,8 @@ class Connection:
         conf = CUBESERVER_DEFAULT_CONFIG,
         verbose: bool = False,
         _force: bool = False,
-        _hostname: str = ""
+        _hostname: str = "",
+        _just_print_exceptions: bool = True
     ):
         """Initializes the connection to the server"""
 
@@ -122,6 +123,8 @@ class Connection:
                 f"The hostname {_hostname} will not take effect. "
                 "This parameter does not apply to the CPython implementation."
             )
+
+        self._catch_exceptions = _just_print_exceptions
 
         self.team_name = team_name
         self.team_secret = team_secret
@@ -147,25 +150,39 @@ class Connection:
         Disconnects from the access point and shuts off the radio"""
         pass
 
-    def connect_socket(self) -> None:
+    def connect_socket(self) -> bool:
         """Creates a socket connection to the server"""
         if self.v:
             print("Connecting the socket...")
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.wrapped_socket = self.context.wrap_socket(self.sock)
-        self.wrapped_socket.settimeout(self.conf.TIMEOUT)
-        self.wrapped_socket.connect((self.conf.API_HOST, self.conf.API_PORT))
+        try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.wrapped_socket = self.context.wrap_socket(self.sock)
+            self.wrapped_socket.settimeout(self.conf.TIMEOUT)
+            self.wrapped_socket.connect((self.conf.API_HOST, self.conf.API_PORT))
+        except ConnectionError as e:
+            if self._just_print_exceptions:
+                print(e.with_traceback())
+                return False
+            raise
+        return True
 
-    def close_socket(self) -> None:
+    def close_socket(self) -> bool:
         """Closes the socket connection and cleans up"""
         if self.v:
             print("Closing the socket...")
-        if hasattr(self, 'wrapped_socket'):
-            self.wrapped_socket.close()
-            del self.wrapped_socket
-        if hasattr(self, 'sock'):
-            self.sock.close()
-            del self.sock
+        try:
+            if hasattr(self, 'wrapped_socket'):
+                self.wrapped_socket.close()
+                del self.wrapped_socket
+            if hasattr(self, 'sock'):
+                self.sock.close()
+                del self.sock
+        except ConnectionError as e:
+            if self._just_print_exceptions:
+                print(e.with_traceback())
+                return False
+            raise
+        return True
 
     @property
     def radio(self):
@@ -329,7 +346,10 @@ class Connection:
                 return self.request_once(method, path, body, content_type, headers)
             except (ValueError, ConnectionError) as e:
                 last_error = e
-        raise last_error
+                if self.v:
+                    print(e)
+        if not self._catch_exceptions:
+            raise last_error
 
     def get_status(self) -> GameStatus:
         """Gives the team access to their score and the current unix time.
