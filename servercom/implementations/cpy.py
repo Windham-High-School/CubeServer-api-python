@@ -183,6 +183,11 @@ class Connection:
                 return False
             raise
         return True
+    
+    def close(self):
+        """Closes the connection completely"""
+        self.close_socket()
+        self.close_wifi()
 
     @property
     def radio(self):
