@@ -107,6 +107,14 @@ class Time(Immutable):
             self.seconds % timeunit,
             absolute=False
         )
+    
+    def floor(self, timeunit: int) -> 'Time':
+        """Returns a Time object representing the beginning of the most recent
+           <MINUTE|HOUR|DAY|WEEK|YEAR>"""
+        return Time(
+            self.seconds - self.seconds % timeunit,
+            absolute=False
+        )
 
     def __add__(self, other: 'Time') -> 'Time':
         if not isinstance(other, Time):
@@ -151,8 +159,8 @@ class Time(Immutable):
         )
     
     def __floordiv__(self, other: int) -> int:
-        if not isinstance(other, int) or self.absolute:
-            raise TypeError("Floor division is only to be used as Time // TimeUnit (int) to find the number of a unit that fits in a given relative time/time delta")
+        #if not isinstance(other, int) or self.absolute:
+        #    raise TypeError("Floor division is only to be used as Time // TimeUnit (int) to find the number of a unit that fits in a given relative time/time delta")
         return self.seconds // other
 
     def __mod__(self, other: 'Time') -> 'Time':
