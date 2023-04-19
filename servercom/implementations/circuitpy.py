@@ -30,11 +30,10 @@ def basic_auth_str(user: str, pwd: str) -> str:
 
 DataClass = enum(
     TEMPERATURE = "temperature",
-    HUMIDITY = "humidity",
     PRESSURE = "pressure",
-    LIGHT_INTENSITY = "light intensity",
     COMMENT = "comment",
-    BATTERY = "remaining battery"
+    BATTERY = "remaining battery",
+    BEACON = "beacon challenge"
 )
 
 class DataPoint():
@@ -69,23 +68,11 @@ class Temperature(DataPoint):
     def __init__(self, value):
         super().__init__(DataClass.TEMPERATURE, value)
 
-class Humidity(DataPoint):
-    """A class for DataPoints that store humidity values"""
-    UNIT = "%"
-    def __init__(self, value):
-        super().__init__(DataClass.HUMIDITY, value)
-
 class Pressure(DataPoint):
     """A class for DataPoints that store barometric pressure values"""
     UNIT="inHg"
     def __init__(self, value):
         super().__init__(DataClass.PRESSURE, value)
-
-class Intensity(DataPoint):
-    """A class for DataPoints that store light intensity values"""
-    UNIT="lux"
-    def __init__(self, value):
-        super().__init__(DataClass.LIGHT_INTENSITY, value)
 
 class Text(DataPoint):
     """A class reserved for DataPoints that are intended as a text comment"""
@@ -93,14 +80,17 @@ class Text(DataPoint):
     def __init__(self, value: str):
         super().__init__(DataClass.COMMENT, value)
 
+class BeaconChallenge(DataPoint):
+    """A class reserved for DataPoints that are in response to a message from the beacon"""
+    UNIT=""  # No unit for regular strings of text
+    def __init__(self, value: str):
+        super().__init__(DataClass.BEACON, value)
+
 class BatteryLevel(DataPoint):
     """A class reserved for DataPoints that are intended as an indication of battery level"""
     UNIT="%"  # No unit for regular strings of text
     def __init__(self, value: int):
         super().__init__(DataClass.BATTERY, value)
-
-class ConnectionError(Exception):
-    """Indicates an issue with the server connection"""
 
 class AuthorizationError(ConnectionError):
     """Indicates an issue with the team credentials"""
@@ -165,7 +155,7 @@ class Connection:
         self.context.load_verify_locations(cadata=server_cert)
         self.connect_wifi()
 
-    def connect_wifi(self, attempts=10) -> None:
+    def connect_wifi(self, attempts=50) -> None:
         """Creates the wifi connection to the access point"""
         wifi.radio.enabled = True
         if self.v:
@@ -179,7 +169,7 @@ class Connection:
                 if self.v:
                     print(e.with_traceback)
             attempts -= 1
-            time.sleep(1)
+            time.sleep(.1)
         if self.v:
             print("Initializing socket pool...")
         self.pool = socketpool.SocketPool(wifi.radio)    
@@ -218,6 +208,7 @@ class Connection:
         return wifi.radio
 
     def rx_bytes(self) -> bytes:
+        total_length: int = None
         response = b""
         while True:
             buf = bytearray(256)
@@ -228,12 +219,21 @@ class Connection:
                     recvd = 0
                 else:
                     raise
-            response += buf
+            response += bytes(buf).replace(b'\x00', b'')
             del buf
             collect()
             if self.v:
                 print(f"Received {recvd} bytes")
-            if recvd == 0:
+            if response.endswith(b'\r\n\r\n'):
+                header_chunks = response.split(b'\r\n')
+                for header in header_chunks:
+                    if header.startswith(b'Content-Length: '):
+                        total_length = len(response) + int(header.split(b' ')[1])
+                        break
+            if recvd == 0 or (
+                total_length is not None and \
+                    len(response) >= total_length
+            ):
                 del recvd
                 collect()
                 break
@@ -267,8 +267,8 @@ class Connection:
                 f"{method} {path} HTTP/1.1\r\n" +
                 "Host: api.local\r\n" +
                 "Connection: close\r\n" +
-                f"Authorization: Basic {auth_str}" +
-                '\r\n'.join(headers) + "\r\n"
+                f"Authorization: Basic {auth_str}\r\n" +
+                '\r\n'.join(headers)
             )
             del auth_str
             collect()
@@ -283,7 +283,8 @@ class Connection:
                     f"Content-Length: {len(body)}\r\n" +
                     f"\r\n{body}\r\n"
                 )
-            req_text += '\r\n'
+            else:
+                req_text += '\r\n\r\n'
 
             if self.v:
                 print("Sending request...")
@@ -302,7 +303,7 @@ class Connection:
             collect()
             if self.v:
                 print("Receiving response...")
-            self.wrapped_socket.setblocking(False)
+            self.wrapped_socket.settimeout(self.conf.TIMEOUT)
             response = self.rx_bytes()
         except Exception as e:
             if self.v:
@@ -388,7 +389,7 @@ class Connection:
         resp_json = loads(resp[1])
         if self.v:
             print(f"It is {resp_json['unix_time']} seconds since the epoch.")
-        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'])
+        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'], resp_json['CubeServer_version'])
 
     def sync_time(self) -> bool:
         """Syncs the current clock against the server"""

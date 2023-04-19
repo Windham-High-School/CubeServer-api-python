@@ -15,7 +15,8 @@ DEGREE_SIGN = u"\xb0"
 
 GameStatus = namedtuple("GameStatus",
     ['time',
-    'score']
+    'score',
+    'CubeServer_version']
 )
 
 HTTPResponse = namedtuple("HTTPResponse",
