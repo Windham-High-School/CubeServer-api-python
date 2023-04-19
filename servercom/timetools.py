@@ -1,6 +1,8 @@
 """Time Tools
 Some tools for dealing with times on microcontrollers
 (to a precision of 1 second)
+
+Note that epoch time is really time since 2020 if you're using CircuitPython
 """
 
 from time import monotonic, struct_time
@@ -23,6 +25,9 @@ TimeZone = enum(
     EST = -5 * TimeUnit.HOUR,
     EDT = -4 * TimeUnit.HOUR
 )
+
+# Offset to allow values to fit in 32-bit signed integers for CircuitPython:
+HIGH_PRECISION_OFFSET = TimeUnit.YEAR * 50  # 50 years since epoch to make 0 2020-01-01 00:00:00
 
 class Time(Immutable):
     """Represents an instant in time based around a UNIX timestamp"""
@@ -170,7 +175,7 @@ class Time(Immutable):
 
     def __str__(self) -> str:
         if self.absolute:
-            return f"{self.seconds} seconds since 1 January 1970 00:00:00 UTC"
+            return f"{self.seconds} seconds since 1 January 2020 or 1970 00:00:00 UTC"
         return f"{self.seconds} seconds"
 
     def __repr__(self) -> str:

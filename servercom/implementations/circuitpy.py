@@ -389,7 +389,7 @@ class Connection:
         resp_json = loads(resp[1])
         if self.v:
             print(f"It is {resp_json['unix_time']} seconds since the epoch.")
-        return GameStatus(Time(resp_json['unix_time']), resp_json['status']['score'], resp_json['CubeServer_version'])
+        return GameStatus(Time(resp_json['2020_time']), resp_json['status']['score'], resp_json['CubeServer_version'])
 
     def sync_time(self) -> bool:
         """Syncs the current clock against the server"""
