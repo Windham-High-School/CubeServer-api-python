@@ -1,0 +1,3 @@
+[submodule "servercom/timeout"]
+	path = servercom/timeout
+	url = https://gist.github.com/snorklerjoe/1b6ffe4b4c46bed7bf34dd03a431c1bc
