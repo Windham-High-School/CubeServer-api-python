@@ -167,7 +167,7 @@ class Connection:
                 break
             except ConnectionError as e:
                 if self.v:
-                    print(e.with_traceback)
+                    print(e)
             attempts -= 1
             time.sleep(.1)
         if self.v:
