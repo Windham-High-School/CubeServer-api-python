@@ -80,7 +80,7 @@ def receive(timeout: int = 10, line_timeout: int = 100, decoder = DEFAULT_DECODE
         protocol = decode_line(decoder, pulsein)
         t_wd.reset()
         read_length += len(protocol)
-        if protocol != b"CSMSG/1.0\r\n":
+        if protocol != b"CSMSG/1.1\r\n":
             print("Potentially unsupported protocol version. Try getting the latest servercom library?")
         headers = {}
         buf = b': '
