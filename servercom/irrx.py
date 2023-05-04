@@ -54,7 +54,7 @@ def receive(timeout: int = 10, line_timeout: int = 100, decoder = DEFAULT_DECODE
         # Read until BELL
         print("*", end="")
         while decode_chunk(decoder, pulsein) != b'\x07':
-            t_wd.reset()
+            pass
         return True
 
     if not wait_for_bell():
@@ -66,7 +66,7 @@ def receive(timeout: int = 10, line_timeout: int = 100, decoder = DEFAULT_DECODE
         buf = b'\x07'
         # Read until no BELL
         print("*", end="")
-        while buf == b'\x07':
+        while buf == b'\x07' or buf == b'':
             buf = decode_chunk(decoder, pulsein)
             t_wd.reset()
         # Figure out datagram length
