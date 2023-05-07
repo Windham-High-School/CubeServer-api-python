@@ -7,11 +7,18 @@ Supported implementations: cpython, circuitpython
 from ._version import *
 from sys import implementation as _implementation
 
+# Generic time tools:
+from . import timetools
 
 # Check the implementation to use
 if   _implementation.name == 'circuitpython':
     # Use the CircuitPython version:
     from .implementations.circuitpy import *
+
+    # Import IR stuff:
+    from . import timeout
+    from . import irrx
+
 elif _implementation.name == 'cpython':
     # Use the CPython version:
     from .implementations.cpy import *
@@ -28,5 +35,7 @@ else:
     raise NotImplementedError(
         f"This library is not supported for the {_implementation.name} "
         "implementation of Python.\n"
-        "We do, however, support CircuitPython and CPython."
+        "We do, however, support CircuitPython and CPython.\n"
+        "If you would like to see support for this implementation, please "
+        "open an issue at https://github.com/Windham-High-School/CubeServer-api-python/issues/new"
     )
