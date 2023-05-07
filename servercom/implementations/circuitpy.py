@@ -452,7 +452,7 @@ class Connection:
                 a2b_base64(
                     resp_json['code']
                 ),
-                reset=reset
+                do_reset=reset
             )
             if self.v:
                 print("code.py replaced!")
