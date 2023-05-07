@@ -40,7 +40,7 @@ class Time(Immutable):
     @classmethod
     def set_unix_time(cls, unix_timestamp: int) -> None:
         cls._timeset = (int(monotonic()), int(unix_timestamp))
-        cls._time_offset = int(unix_timestamp - monotonic())
+        cls._time_offset = int(unix_timestamp - int(monotonic()))
 
     @classmethod
     def set_time(cls, current_time: 'Time') -> None:
@@ -54,11 +54,13 @@ class Time(Immutable):
     @classmethod
     def from_monotonic_time(cls, monotonic_time: int) -> int:
         """Returns a UNIX timestamp for a given monotonic time"""
-        return int(monotonic_time + cls._time_offset)
+        if not isinstance(monotonic_time, int):
+            raise TypeError("Monotonic time must be an integer")
+        return monotonic_time + cls._time_offset
 
     @classmethod
     def get_unix_time(cls) -> int:
-        return cls.from_monotonic_time(monotonic())
+        return cls.from_monotonic_time(int(monotonic()))
 
     @classmethod
     def now(cls) -> 'Time':
@@ -195,4 +197,4 @@ class Time(Immutable):
         """Returns the equivalent monotonic time"""
         if self.absolute:
             return self.from_unix_time(self.seconds)
-        return monotonic() + self.seconds
+        return int(monotonic()) + self.seconds
