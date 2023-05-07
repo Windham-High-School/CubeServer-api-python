@@ -461,8 +461,12 @@ class Connection:
             print("Stale update.")
         return False
  
-    def __exit__(self):
+    def close(self):
+        """Closes the connection to the server"""
         if self.v:
             print("Closing the server connection-")
         self.close_socket()
         self.close_wifi()
+
+    def __exit__(self):
+        self.close()
