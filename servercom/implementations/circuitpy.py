@@ -45,7 +45,7 @@ class DataPoint():
     def UNIT() -> str:
         """A standard string representation of the unit for this datapoint"""
 
-    def __init__(self, data_class: DataClass, value: Union[int, float, str]):
+    def __init__(self, data_class: DataClass, value: int | float | str):
         """Initializes a piece of data to send to the server"""
         self.data_class = data_class
         self.value = value
@@ -88,8 +88,8 @@ class BeaconChallenge(DataPoint):
 
 class BatteryLevel(DataPoint):
     """A class reserved for DataPoints that are intended as an indication of battery level"""
-    UNIT="%"  # No unit for regular strings of text
-    def __init__(self, value: int):
+    UNIT="V"
+    def __init__(self, value: float):
         super().__init__(DataClass.BATTERY, value)
 
 class AuthorizationError(ConnectionError):

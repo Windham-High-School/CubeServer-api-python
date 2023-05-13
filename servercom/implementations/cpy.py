@@ -75,7 +75,7 @@ class BeaconChallenge(DataPoint):
 
 class BatteryLevel(DataPoint):
     """A class reserved for DataPoints that are intended as an indication of battery level"""
-    UNIT="%"  # No unit for regular strings of text
+    UNIT="V"
     def __init__(self, value: int):
         super().__init__(DataClass.BATTERY, value)
 
