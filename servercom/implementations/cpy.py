@@ -20,7 +20,7 @@ class DataClass(str, Enum):
     TEMPERATURE = "temperature"
     PRESSURE = "pressure"
     COMMENT = "comment"
-    BATTERY = "remaining battery"
+    BATTERY = "battery voltage"
     BEACON = "beacon challenge"
 
 class DataPoint():

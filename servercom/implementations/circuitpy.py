@@ -32,7 +32,7 @@ DataClass = enum(
     TEMPERATURE = "temperature",
     PRESSURE = "pressure",
     COMMENT = "comment",
-    BATTERY = "remaining battery",
+    BATTERY = "battery voltage",
     BEACON = "beacon challenge"
 )
 
