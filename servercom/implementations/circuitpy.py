@@ -39,11 +39,10 @@ DataClass = enum(
 class DataPoint():
     """A class for storing and handling datapoints"""
 
-    @staticmethod
     @property
-    #@abstractmethod
-    def UNIT() -> str:
+    def UNIT(self) -> str:
         """A standard string representation of the unit for this datapoint"""
+        raise NotImplementedError("Subclasses must define UNIT")
 
     def __init__(self, data_class: DataClass, value: int | float | str):
         """Initializes a piece of data to send to the server"""
