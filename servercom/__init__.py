@@ -17,7 +17,10 @@ if   _implementation.name == 'circuitpython':
 
     # Import IR stuff:
     from . import timeout
-    from . import irrx
+    try:
+        from . import irrx
+    except ImportError:
+        print("irrx functionality disabled due to no adafruit_irremote library")
 
 elif _implementation.name == 'cpython':
     # Use the CPython version:
