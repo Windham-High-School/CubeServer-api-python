@@ -130,8 +130,7 @@ class Connection:
         # Check parameters:
         if not _force and (
             team_name is None or \
-            team_secret is None or \
-            server_cert is None
+            team_secret is None
            ) or \
            not isinstance(conf, ConnectionConfig):
             raise TypeError("Bad parameters or client config")
@@ -148,10 +147,11 @@ class Connection:
         if self.v:
             print("Obtaining and configuring SSL context...")
         self.context = ssl.create_default_context()
-        self.context.check_hostname = False
-        if self.v:
-            print("Installing server CA certificate for server verification")
-        self.context.load_verify_locations(cadata=server_cert)
+        if server_cert:
+            self.context.check_hostname = False
+            if self.v:
+                print("Installing server CA certificate for server verification")
+            self.context.load_verify_locations(cadata=server_cert)
         self.connect_wifi()
 
     def connect_wifi(self, attempts=50) -> None:
@@ -162,7 +162,7 @@ class Connection:
         connected = False
         while not connected and attempts > 0:
             try:
-                wifi.radio.connect(self.conf.AP_SSID)
+                wifi.radio.connect(ssid=self.conf.AP_SSID, password=self.conf.AP_PASSWORD)
                 break
             except ConnectionError as e:
                 if self.v:
@@ -264,7 +264,7 @@ class Connection:
             auth_str = basic_auth_str(self.team_name, self.team_secret)
             req_text = str(
                 f"{method} {path} HTTP/1.1\r\n" +
-                "Host: api.local\r\n" +
+                f"Host: {self.conf.API_CN}\r\n" +
                 "Connection: close\r\n" +
                 f"Authorization: Basic {auth_str}\r\n" +
                 '\r\n'.join(headers)
