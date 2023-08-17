@@ -224,12 +224,12 @@ class Connection:
             if self.v:
                 print(f"Received {recvd} bytes")
                 
-            if b'\r\n\r\n' in response:
-                header, rest = response.split(b'\r\n\r\n', 2)
-                header_chunks = header.split(b'\r\n')
+            if total_length is None and b'\r\n\r\n' in response:
+                raw_header, rest = response.split(b'\r\n\r\n', 2)
+                header_chunks = raw_header.split(b'\r\n')
                 for header in header_chunks:
                     if header.startswith(b'Content-Length: '):
-                        total_length = len(header) + len(b'\r\n\r\n') + int(header.split(b' ')[1])
+                        total_length = len(raw_header) + len(b'\r\n\r\n') + int(header.split(b' ')[1])
                         break
  
             if recvd == 0 or (
