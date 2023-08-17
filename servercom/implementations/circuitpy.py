@@ -223,12 +223,15 @@ class Connection:
             collect()
             if self.v:
                 print(f"Received {recvd} bytes")
-            if response.endswith(b'\r\n\r\n'):
-                header_chunks = response.split(b'\r\n')
+                
+            if b'\r\n\r\n' in response:
+                header, rest = response.split(b'\r\n\r\n', 2)
+                header_chunks = header.split(b'\r\n')
                 for header in header_chunks:
                     if header.startswith(b'Content-Length: '):
-                        total_length = len(response) + int(header.split(b' ')[1])
+                        total_length = len(header) + len(b'\r\n\r\n') + int(header.split(b' ')[1])
                         break
+ 
             if recvd == 0 or (
                 total_length is not None and \
                     len(response) >= total_length
