@@ -225,7 +225,7 @@ class Connection:
                 print(f"Received {recvd} bytes")
                 
             if b'\r\n\r\n' in response:
-                header, rest = response.split(b'\r\n\r\n')
+                header, rest = response.split(b'\r\n\r\n', 2)
                 header_chunks = header.split(b'\r\n')
                 for header in header_chunks:
                     if header.startswith(b'Content-Length: '):
