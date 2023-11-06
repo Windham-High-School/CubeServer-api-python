@@ -267,7 +267,7 @@ class Connection:
             auth_str = basic_auth_str(self.team_name, self.team_secret)
             req_text = str(
                 f"{method} {path} HTTP/1.1\r\n" +
-                f"Host: {self.conf.API_CN}\r\n" +
+                f"Host: {self.conf.API_HOST}\r\n" +
                 "Connection: close\r\n" +
                 f"Authorization: Basic {auth_str}\r\n" +
                 '\r\n'.join(headers)
