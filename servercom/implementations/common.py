@@ -35,14 +35,12 @@ class ConnectionConfig:
     if 'client_config' in globals():
         AP_SSID: str = client_config.CONF_AP_SSID
         AP_PASSWORD: str = client_config.CONF_AP_PASSWORD if hasattr(client_config, "CONF_AP_PASSWORD") else ""
-        API_CN: str = client_config.CONF_API_CN
         API_HOST: str = client_config.CONF_API_HOST
         API_PORT: int = client_config.API_PORT
     else:
         AP_SSID: str = "CubeServer-API"
         AP_PASSWORD: str = ""
-        API_CN: str = "api.local"
-        API_HOST: str = "https://api.local"
+        API_HOST: str = "api.local"
         API_PORT: int = 8081
 
 CUBESERVER_DEFAULT_CONFIG = ConnectionConfig()
